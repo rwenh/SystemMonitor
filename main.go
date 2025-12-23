@@ -13,7 +13,10 @@ import (
 )
 
 const (
-	Reset   = "\033[0m"
+	Reset     = "\033[0m"
+	Bold      = "\033[1m"
+	Underline = "\033[4m"
+
 	Red     = "\033[31m"
 	Green   = "\033[32m"
 	Yellow  = "\033[33m"
@@ -21,7 +24,6 @@ const (
 	Magenta = "\033[35m"
 	Cyan    = "\033[36m"
 	White   = "\033[37m"
-	Bold    = "\033[1m"
 )
 
 func getData() (*disk.UsageStat, []cpu.InfoStat, []float64, *mem.VirtualMemoryStat, error) {
@@ -95,7 +97,7 @@ func printMenu(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent []f
 	fmt.Printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n")
 
 	fmt.Printf("\033[9;0H")
-	time.Sleep(1 * time.Second)
+	time.Sleep(500 * time.Microsecond)
 }
 
 func getProgressBar(progress int, base int) string {
