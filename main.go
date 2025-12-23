@@ -79,7 +79,7 @@ func printValue(value string, cursorTop int, cursorLeft int, screenWidth int) {
 	fmt.Printf("\033[%d;%dH┃\n", cursorTop, screenWidth)
 }
 
-func PrintMenu(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent []float64, memoryInfo *mem.VirtualMemoryStat, netInfo []net.IOCountersStat, err error, BytesRecvDelta uint64) {
+func PrintMenu(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent []float64, memoryInfo *mem.VirtualMemoryStat, netInfo []net.IOCountersStat, err error, BytesRecvDelta float64) {
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -102,12 +102,12 @@ func PrintMenu(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent []f
 	netLine := ""
 	if BytesRecvDelta > 1048576 {
 		BytesRecvDelta /= 1048576
-		netLine = fmt.Sprintf("┃ %sNetwork:    %s %dMB", Magenta, Reset, BytesRecvDelta)
+		netLine = fmt.Sprintf("┃ %sNetwork:    %s %.2fMB", Magenta, Reset, BytesRecvDelta)
 	} else if BytesRecvDelta > 1024 {
 		BytesRecvDelta /= 1024
-		netLine = fmt.Sprintf("┃ %sNetwork:    %s %dKB", Magenta, Reset, BytesRecvDelta)
+		netLine = fmt.Sprintf("┃ %sNetwork:    %s %.2fKB", Magenta, Reset, BytesRecvDelta)
 	} else {
-		netLine = fmt.Sprintf("┃ %sNetwork:    %s %dB", Magenta, Reset, BytesRecvDelta)
+		netLine = fmt.Sprintf("┃ %sNetwork:    %s %.2fB", Magenta, Reset, BytesRecvDelta)
 	}
 
 	printValue(netLine, 8, 0, 36)
@@ -142,8 +142,8 @@ func main() {
 		BytesRecvDelta := netInfo[0].BytesRecv - BytesRecvLastIt
 
 		ClearScreen()
-		PrintMenu(diskUsage, cpuInfo, cpuPercent, memoryInfo, netInfo, err, BytesRecvDelta)
+		PrintMenu(diskUsage, cpuInfo, cpuPercent, memoryInfo, netInfo, err, float64(BytesRecvDelta))
 
-		time.Sleep(500 * time.Microsecond)
+		time.Sleep(2000 * time.Microsecond)
 	}
 }
