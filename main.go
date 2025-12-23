@@ -65,38 +65,42 @@ func print(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent []float
 		fmt.Println(err)
 	}
 
-	var memUsed int = int(memoryInfo.UsedPercent)
-
-	fmt.Println("┏━━━━━━━━━━━━━━━━━━━━━━━━┓")
-	fmt.Println("┃  ", Cyan, Bold, "System Monitor", Reset, "   ┃")
-	fmt.Println("┣━━━━━━━━━━━━━━━━━━━━━━━━┫")
+	fmt.Println("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓")
+	fmt.Println("┃       ", Cyan, Bold, "System Monitor", Reset, "        ┃")
+	// ┃          System Monitor        ┃
+	fmt.Println("┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫")
 
 	fmt.Printf("\033[4;0H")
 	fmt.Println("┃ CPU Model:", cpuInfo[0].ModelName)
-	fmt.Printf("\033[4;26H")
+	fmt.Printf("\033[4;36H")
 	fmt.Printf("┃\n")
 
 	fmt.Printf("\033[5;0H")
-	fmt.Printf("┃ CPU Usage: %.2f%%\n", cpuPercent[0])
-	fmt.Printf("\033[5;26H")
+	fmt.Printf("┃ CPU Used:    ")
+	printBar(int(cpuPercent[0]))
+	fmt.Printf(" [%.2f%%]\n", cpuPercent[0])
+	fmt.Printf("\033[5;36H")
 	fmt.Printf("┃\n")
 
 	fmt.Printf("\033[6;0H")
-	fmt.Printf("┃ Disk Used: %.2f%%\n", diskUsage.UsedPercent)
-	fmt.Printf("\033[6;26H")
+	fmt.Printf("┃ Disk Used:   ")
+	printBar(int(diskUsage.UsedPercent))
+	fmt.Printf(" [%.2f%%]\n", diskUsage.UsedPercent)
+	fmt.Printf("\033[6;36H")
 	fmt.Printf("┃\n")
 
 	fmt.Printf("\033[7;0H")
 	fmt.Printf("┃ Memory Used: ")
-	printBar(memUsed)
-	fmt.Printf("\033[7;26H")
+	printBar(int(memoryInfo.UsedPercent))
+	fmt.Printf(" [%.2f%%]\n", memoryInfo.UsedPercent)
+	fmt.Printf("\033[7;36H")
 	fmt.Printf("┃\n")
 
 	fmt.Printf("\033[8;0H")
-	fmt.Printf("┗━━━━━━━━━━━━━━━━━━━━━━━━┛")
+	fmt.Printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛")
 
 	fmt.Printf("\033[9;0H")
-	time.Sleep(2 * time.Second)
+	time.Sleep(1 * time.Second)
 }
 
 func printBar(progress int) {
