@@ -65,39 +65,38 @@ func print(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent []float
 		fmt.Println(err)
 	}
 
-	fmt.Println("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓")
-	fmt.Println("┃       ", Cyan, Bold, "System Monitor", Reset, "        ┃")
-	// ┃          System Monitor        ┃
-	fmt.Println("┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫")
+	fmt.Printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n")
+	fmt.Printf("┃          %s%sSystem Monitor%s          ┃\n", Cyan, Bold, Reset)
+	fmt.Printf("┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n")
 
 	fmt.Printf("\033[4;0H")
-	fmt.Println("┃ CPU Model:", cpuInfo[0].ModelName)
+	fmt.Printf("┃ %sCPU Model:%s %s", Blue, Reset, cpuInfo[0].ModelName)
 	fmt.Printf("\033[4;36H")
 	fmt.Printf("┃\n")
 
 	fmt.Printf("\033[5;0H")
-	fmt.Printf("┃ CPU Used:    ")
+	fmt.Printf("┃ %sCPU Used:%s    ", Blue, Reset)
 	printBar(int(cpuPercent[0]))
-	fmt.Printf(" [%.2f%%]\n", cpuPercent[0])
+	fmt.Printf(" [%.2f%%]", cpuPercent[0])
 	fmt.Printf("\033[5;36H")
 	fmt.Printf("┃\n")
 
 	fmt.Printf("\033[6;0H")
 	fmt.Printf("┃ Disk Used:   ")
 	printBar(int(diskUsage.UsedPercent))
-	fmt.Printf(" [%.2f%%]\n", diskUsage.UsedPercent)
+	fmt.Printf(" [%.2f%%]", diskUsage.UsedPercent)
 	fmt.Printf("\033[6;36H")
 	fmt.Printf("┃\n")
 
 	fmt.Printf("\033[7;0H")
-	fmt.Printf("┃ Memory Used: ")
+	fmt.Printf("┃ %sMemory Used:%s ", Yellow, Reset)
 	printBar(int(memoryInfo.UsedPercent))
-	fmt.Printf(" [%.2f%%]\n", memoryInfo.UsedPercent)
+	fmt.Printf(" [%.2f%%]", memoryInfo.UsedPercent)
 	fmt.Printf("\033[7;36H")
 	fmt.Printf("┃\n")
 
 	fmt.Printf("\033[8;0H")
-	fmt.Printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛")
+	fmt.Printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n")
 
 	fmt.Printf("\033[9;0H")
 	time.Sleep(1 * time.Second)
