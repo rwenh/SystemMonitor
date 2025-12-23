@@ -60,6 +60,13 @@ func ClearScreen() {
 	}
 }
 
+func printValue(value string, cursorTop int, cursorLeft int, screenWidth int) {
+	fmt.Printf("\033[", cursorTop, ";", cursorLeft, "H") // Set cursor
+	fmt.Printf(value)
+	fmt.Printf("\033[", cursorTop, ";", screenWidth, "H") // Print Edge
+	fmt.Printf("┃\n")
+}
+
 func print(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent []float64, memoryInfo *mem.VirtualMemoryStat, err error) {
 	if err != nil {
 		fmt.Println(err)
@@ -69,31 +76,16 @@ func print(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent []float
 	fmt.Printf("┃          %s%sSystem Monitor%s          ┃\n", Cyan, Bold, Reset)
 	fmt.Printf("┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n")
 
-	fmt.Printf("\033[4;0H")
-	fmt.Printf("┃ %sCPU Model:  %s %s", Blue, Reset, cpuInfo[0].ModelName)
-	fmt.Printf("\033[4;36H")
-	fmt.Printf("┃\n")
+	printValue(fmt.Sprintf("┃ %sCPU Model:  %s %s", Blue, Reset, cpuInfo[0].ModelName), 4, 0, 36)
 
-	fmt.Printf("\033[5;0H")
-	fmt.Printf("┃ %sCPU Used:%s    ", Blue, Reset)
-	printProgressBar(int(cpuPercent[0]))
-	fmt.Printf(" [%.2f%%]", cpuPercent[0])
-	fmt.Printf("\033[5;36H")
-	fmt.Printf("┃\n")
+	cpuBar := fmt.Sprintf("┃ %sCPU Used:%s    %s [%.2f%%]", Blue, Reset, getProgressBar(int(cpuPercent[0]), 10), cpuPercent[0])
+	printValue(cpuBar, 5, 0, 36)
 
-	fmt.Printf("\033[6;0H")
-	fmt.Printf("┃ %sDisk Used:%s   ", Green, Reset)
-	printProgressBar(int(diskUsage.UsedPercent))
-	fmt.Printf(" [%.2f%%]", diskUsage.UsedPercent)
-	fmt.Printf("\033[6;36H")
-	fmt.Printf("┃\n")
+	diskBar := fmt.Sprintf("┃ %sDisk Used:%s   %s [%.2f%%]", Green, Reset, getProgressBar(int(diskUsage.UsedPercent), 10), diskUsage.UsedPercent)
+	printValue(diskBar, 6, 0, 36)
 
-	fmt.Printf("\033[7;0H")
-	fmt.Printf("┃ %sMemory Used:%s ", Yellow, Reset)
-	printProgressBar(int(memoryInfo.UsedPercent))
-	fmt.Printf(" [%.2f%%]", memoryInfo.UsedPercent)
-	fmt.Printf("\033[7;36H")
-	fmt.Printf("┃\n")
+	memBar := fmt.Sprintf("┃ %sMemory Used:%s %s [%.2f%%]", Yellow, Reset, getProgressBar(int(memoryInfo.UsedPercent), 10), memoryInfo.UsedPercent)
+	printValue(memBar, 7, 0, 36)
 
 	fmt.Printf("\033[8;0H")
 	fmt.Printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n")
@@ -102,24 +94,20 @@ func print(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent []float
 	time.Sleep(1 * time.Second)
 }
 
-func printProgressBar(progress int) {
-	base := 10
+func getProgressBar(progress int, base int) string {
 	p2 := float64(progress) / 100.0
 	p3 := p2 * float64(base)
 	progress = int(p3)
 
-	if progress < 100/base {
-		progress = base
-	}
-
+	bar := ""
 	for i := 0; i <= progress; i++ {
-		fmt.Printf("█")
+		bar += "█"
 	}
 
 	for i := progress; i < base-1; i++ {
-		fmt.Printf("░")
+		bar += "░"
 	}
-	// progress 50 base 10 Should output █████░░░░░
+	return bar
 }
 
 func main() {
