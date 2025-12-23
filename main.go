@@ -10,6 +10,7 @@ import (
 	"github.com/shirou/gopsutil/v4/cpu"
 	"github.com/shirou/gopsutil/v4/disk"
 	"github.com/shirou/gopsutil/v4/mem"
+	"github.com/shirou/gopsutil/v4/net"
 )
 
 const (
@@ -26,28 +27,33 @@ const (
 	White   = "\033[37m"
 )
 
-func getData() (*disk.UsageStat, []cpu.InfoStat, []float64, *mem.VirtualMemoryStat, error) {
+func getData() (*disk.UsageStat, []cpu.InfoStat, []float64, *mem.VirtualMemoryStat, []net.IOCountersStat, error) {
 	diskUsage, err := disk.Usage("/")
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	cpuInfo, err := cpu.Info()
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	cpuPercent, err := cpu.Percent(time.Second, false)
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	memoryInfo, err := mem.VirtualMemory()
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
-	return diskUsage, cpuInfo, cpuPercent, memoryInfo, nil
+	netInfo, err := net.IOCounters(true)
+	if err != nil {
+		return nil, nil, nil, nil, nil, err
+	}
+
+	return diskUsage, cpuInfo, cpuPercent, memoryInfo, netInfo, nil
 }
 
 func ClearScreen() {
@@ -73,7 +79,7 @@ func printValue(value string, cursorTop int, cursorLeft int, screenWidth int) {
 	fmt.Printf("\033[%d;%dH┃\n", cursorTop, screenWidth)
 }
 
-func printMenu(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent []float64, memoryInfo *mem.VirtualMemoryStat, err error) {
+func printMenu(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent []float64, memoryInfo *mem.VirtualMemoryStat, netInfo []net.IOCountersStat, err error, BytesRecvDelta uint64) {
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -82,7 +88,8 @@ func printMenu(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent []f
 	fmt.Printf("┃          %s%sSystem Monitor%s          ┃\n", Cyan, Bold, Reset)
 	fmt.Printf("┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n")
 
-	printValue(fmt.Sprintf("┃ %sCPU Model:  %s %s", Blue, Reset, cpuInfo[0].ModelName), 4, 0, 36)
+	modelLine := fmt.Sprintf("┃ %sCPU Model:  %s %s", Blue, Reset, cpuInfo[0].ModelName)
+	printValue(modelLine, 4, 0, 36)
 
 	cpuLine := fmt.Sprintf("┃ %sCPU Used:%s    %s [%.2f%%]", Blue, Reset, getProgressBar(int(cpuPercent[0]), 10), cpuPercent[0])
 	printValue(cpuLine, 5, 0, 36)
@@ -92,11 +99,13 @@ func printMenu(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent []f
 	memLine := fmt.Sprintf("┃ %sMemory Used:%s %s [%.2f%%]", Yellow, Reset, getProgressBar(int(memoryInfo.UsedPercent), 10), memoryInfo.UsedPercent)
 	printValue(memLine, 7, 0, 36)
 
-	fmt.Printf("\033[8;0H")
+	netLine := fmt.Sprintf("┃ %sNetwork:    %s %dB", Magenta, Reset, BytesRecvDelta)
+	printValue(netLine, 8, 0, 36)
+
+	fmt.Printf("\033[9;0H")
 	fmt.Printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n")
 
 	fmt.Printf("\033[9;0H")
-	time.Sleep(500 * time.Microsecond)
 }
 
 func getProgressBar(progress int, base int) string {
@@ -116,9 +125,15 @@ func getProgressBar(progress int, base int) string {
 }
 
 func main() {
+	diskUsage, cpuInfo, cpuPercent, memoryInfo, netInfo, err := getData()
 	for {
-		diskUsage, cpuInfo, cpuPercent, memoryInfo, err := getData()
+		BytesRecvLastIt := netInfo[0].BytesRecv
+		diskUsage, cpuInfo, cpuPercent, memoryInfo, netInfo, err = getData()
+		BytesRecvDelta := netInfo[0].BytesRecv - BytesRecvLastIt
+
 		ClearScreen()
-		printMenu(diskUsage, cpuInfo, cpuPercent, memoryInfo, err)
+		printMenu(diskUsage, cpuInfo, cpuPercent, memoryInfo, netInfo, err, BytesRecvDelta)
+
+		time.Sleep(500 * time.Microsecond)
 	}
 }
