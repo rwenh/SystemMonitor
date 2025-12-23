@@ -53,11 +53,30 @@ func print(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent []float
 		fmt.Println(err)
 	}
 
-	fmt.Println("---System Monitor---")
-	fmt.Println("CPU Model:", cpuInfo[0].ModelName)
-	fmt.Printf("CPU Usage: %.2f%%\n", cpuPercent[0])
-	fmt.Printf("Disk Used: %.2f%%\n", diskUsage.UsedPercent)
-	fmt.Printf("Memory Used: %.2f%%\n", memoryInfo.UsedPercent)
+	fmt.Println("┏━━━━━━━━━━━━━━━━━━━━━━━━┓\n┃      System Monitor    ┃\n┣━━━━━━━━━━━━━━━━━━━━━━━━┫\n")
+
+	fmt.Printf("\033[4;0H")
+	fmt.Println("┃ CPU Model:", cpuInfo[0].ModelName)
+	fmt.Printf("\033[4;26H")
+	fmt.Printf("┃\n")
+
+	fmt.Printf("\033[5;0H")
+	fmt.Printf("┃ CPU Usage: %.2f%%\n", cpuPercent[0])
+	fmt.Printf("\033[5;26H")
+	fmt.Printf("┃\n")
+
+	fmt.Printf("\033[6;0H")
+	fmt.Printf("┃ Disk Used: %.2f%%\n", diskUsage.UsedPercent)
+	fmt.Printf("\033[6;26H")
+	fmt.Printf("┃\n")
+
+	fmt.Printf("\033[7;0H")
+	fmt.Printf("┃ Memory Used: %.2f%%\n", memoryInfo.UsedPercent)
+	fmt.Printf("\033[7;26H")
+	fmt.Printf("┃\n")
+
+	fmt.Printf("\033[8;0H")
+	fmt.Printf("┗━━━━━━━━━━━━━━━━━━━━━━━━┛")
 
 	time.Sleep(2 * time.Second)
 }
@@ -65,8 +84,8 @@ func print(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent []float
 func main() {
 
 	for {
-		ClearScreen()
 		diskUsage, cpuInfo, cpuPercent, memoryInfo, err := getData()
+		ClearScreen()
 		print(diskUsage, cpuInfo, cpuPercent, memoryInfo, err)
 	}
 
