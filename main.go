@@ -99,16 +99,16 @@ func PrintMenu(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent []f
 	memLine := fmt.Sprintf("┃ %sMemory Used:%s %s [%.2f%%]", Yellow, Reset, GetProgressBar(int(memoryInfo.UsedPercent), 10), memoryInfo.UsedPercent)
 	printValue(memLine, 7, 0, 36)
 
-	netLine := ""
-	if BytesRecvDelta > 1048576 {
-		BytesRecvDelta /= 1048576
-		netLine = fmt.Sprintf("┃ %sNetwork:    %s %.2fMB", Magenta, Reset, BytesRecvDelta)
-	} else if BytesRecvDelta > 1024 {
+	prefixes := [6]string{"B", "KB", "MB", "GB", "TB", "PB"}
+
+	i := 0
+
+	for BytesRecvDelta >= 1024 {
 		BytesRecvDelta /= 1024
-		netLine = fmt.Sprintf("┃ %sNetwork:    %s %.2fKB", Magenta, Reset, BytesRecvDelta)
-	} else {
-		netLine = fmt.Sprintf("┃ %sNetwork:    %s %.2fB", Magenta, Reset, BytesRecvDelta)
+		i++
 	}
+
+	netLine := fmt.Sprintf("┃ %sNetwork:%s    %.2f %s", Magenta, Reset, BytesRecvDelta, prefixes[i])
 
 	printValue(netLine, 8, 0, 36)
 
