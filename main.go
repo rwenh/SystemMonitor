@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/eiannone/keyboard"
 	"github.com/shirou/gopsutil/v4/cpu"
 	"github.com/shirou/gopsutil/v4/disk"
 	"github.com/shirou/gopsutil/v4/mem"
@@ -160,9 +161,6 @@ func PrintMainMenu(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent
 }
 
 func PrintNetMenu(netInfo []net.IOCountersStat, selection int, err error) {
-	/*
-	 * Arrow <- -> to cycle through netInfo Elements (Name, Packets sent, recv...)
-	 */
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -191,12 +189,24 @@ func PrintNetMenu(netInfo []net.IOCountersStat, selection int, err error) {
 	PrintValue(nameLine, 7, ScreenWidth+10, ScreenWidth)
 	PrintValue("┃", 7, ScreenWidth+9+ScreenWidth, ScreenWidth)
 
-	packetsRecvLine := fmt.Sprintf("┃ %s%sReceived:%s    [%d]", Cyan, Bold, Reset, netInfo[selection].PacketsRecv)
-	PrintValue(packetsRecvLine, 8, ScreenWidth+10, ScreenWidth)
+	prefixes := [6]string{"B", "KiB", "MiB", "GiB", "TiB", "PiB"}
+
+	bytesRecv := float64(netInfo[selection].BytesRecv)
+	i := 0
+	for i = 0; bytesRecv >= 1024 && i < 5; i++ {
+		bytesRecv /= 1024
+	}
+	bytesRecvLine := fmt.Sprintf("┃ %s%sReceived:%s    [%.2f%s]", Cyan, Bold, Reset, bytesRecv, prefixes[i])
+	PrintValue(bytesRecvLine, 8, ScreenWidth+10, ScreenWidth)
 	PrintValue("┃", 8, ScreenWidth+9+ScreenWidth, ScreenWidth)
 
-	packetsSentLine := fmt.Sprintf("┃ %s%sSent:%s        [%d]", Cyan, Bold, Reset, netInfo[selection].PacketsSent)
-	PrintValue(packetsSentLine, 9, ScreenWidth+10, ScreenWidth)
+	bytesSent := float64(netInfo[selection].BytesSent)
+	j := 0
+	for j = 0; bytesSent >= 1024 && j < 5; j++ {
+		bytesSent /= 1024
+	}
+	bytesSentLine := fmt.Sprintf("┃ %s%sSent:%s        [%.2f%s]", Cyan, Bold, Reset, bytesSent, prefixes[j])
+	PrintValue(bytesSentLine, 9, ScreenWidth+10, ScreenWidth)
 	PrintValue("┃", 9, ScreenWidth+9+ScreenWidth, ScreenWidth)
 
 	header5 := fmt.Sprintf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛")
@@ -219,12 +229,46 @@ func GetProgressBar(progress int, base int) string {
 	return bar
 }
 
+func ReadKey() (char rune, err error) {
+	char, _, err = keyboard.GetKey()
+	if err != nil {
+		return 0, err
+	}
+	return char, nil
+}
+
 func main() {
-	/*
-	 * TODO: Net Graph 0-Max
-	 * TODO: Parallel Network Menu
-	 */
+	if err := keyboard.Open(); err != nil {
+		panic(err)
+	}
+	defer keyboard.Close()
+
+	selection := 0
 	diskUsage, cpuInfo, cpuPercent, memoryInfo, netInfo, temperatureInfo, err := GetData()
+
+	go func() {
+		for {
+			_, key, err := keyboard.GetKey()
+			if err != nil {
+				continue
+			}
+
+			switch key {
+			case keyboard.KeyArrowLeft:
+				if selection > 0 {
+					selection--
+				}
+			case keyboard.KeyArrowRight:
+				if selection < len(netInfo)-1 {
+					selection++
+				}
+			case keyboard.KeyEsc, keyboard.KeyCtrlC:
+				keyboard.Close()
+				os.Exit(0)
+			}
+		}
+	}()
+
 	for {
 		BytesRecvLastIt := netInfo[0].BytesRecv
 		diskUsage, cpuInfo, cpuPercent, memoryInfo, netInfo, temperatureInfo, err = GetData()
@@ -232,8 +276,8 @@ func main() {
 
 		ClearScreen()
 		PrintMainMenu(diskUsage, cpuInfo, cpuPercent, memoryInfo, netInfo, temperatureInfo, err, float64(BytesRecvDelta))
-		PrintNetMenu(netInfo, 0, err)
+		PrintNetMenu(netInfo, selection, err)
 
-		time.Sleep(1000 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 	}
 }
