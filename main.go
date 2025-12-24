@@ -83,34 +83,36 @@ func PrintMenu(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent []f
 	if err != nil {
 		fmt.Println(err)
 	}
-
 	fmt.Printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n")
 	fmt.Printf("┃          %s%sSystem Monitor%s          ┃\n", Cyan, Bold, Reset)
 	fmt.Printf("┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n")
 
-	modelLine := fmt.Sprintf("┃ %sCPU Model:  %s %s", Blue, Reset, cpuInfo[0].ModelName)
+	padding := 0
+	modelLine := ""
+	if len(cpuInfo[0].ModelName) > 19 {
+		padding = 1
+		modelLine = fmt.Sprintf("┃ %sCPU Model:   %s%s%s\n┃              %s",
+			Blue, Reset, cpuInfo[0].ModelName[:18], "-", cpuInfo[0].ModelName[18:])
+	} else {
+		modelLine = fmt.Sprintf("┃ %sCPU Model:  %s %s", Blue, Reset, cpuInfo[0].ModelName)
+	}
 	printValue(modelLine, 4, 0, 36)
 
 	cpuLine := fmt.Sprintf("┃ %sCPU Used:%s    %s [%.2f%%]", Blue, Reset, GetProgressBar(int(cpuPercent[0]), 10), cpuPercent[0])
-	printValue(cpuLine, 5, 0, 36)
+	printValue(cpuLine, 5+padding, 0, 36)
 	diskLine := fmt.Sprintf("┃ %sDisk Used:%s   %s [%.2f%%]", Green, Reset, GetProgressBar(int(diskUsage.UsedPercent), 10), diskUsage.UsedPercent)
-	printValue(diskLine, 6, 0, 36)
+	printValue(diskLine, 6+padding, 0, 36)
 
 	memLine := fmt.Sprintf("┃ %sMemory Used:%s %s [%.2f%%]", Yellow, Reset, GetProgressBar(int(memoryInfo.UsedPercent), 10), memoryInfo.UsedPercent)
-	printValue(memLine, 7, 0, 36)
+	printValue(memLine, 7+padding, 0, 36)
 
-	prefixes := [6]string{"B", "KB", "MB", "GB", "TB", "PB"}
-
+	prefixes := [6]string{"B", "KiB", "MiB", "GiB", "TiB", "PiB"}
 	i := 0
-
-	for BytesRecvDelta >= 1024 {
+	for i = 0; BytesRecvDelta >= 1024; i++ {
 		BytesRecvDelta /= 1024
-		i++
 	}
-
-	netLine := fmt.Sprintf("┃ %sNetwork:%s    %.2f %s", Magenta, Reset, BytesRecvDelta, prefixes[i])
-
-	printValue(netLine, 8, 0, 36)
+	netLine := fmt.Sprintf("┃ %sNetwork:%s     %.2f %s", Magenta, Reset, BytesRecvDelta, prefixes[i])
+	printValue(netLine, 8+padding, 0, 36)
 
 	fmt.Printf("\033[9;0H")
 	fmt.Printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n")
@@ -144,6 +146,6 @@ func main() {
 		ClearScreen()
 		PrintMenu(diskUsage, cpuInfo, cpuPercent, memoryInfo, netInfo, err, float64(BytesRecvDelta))
 
-		time.Sleep(2000 * time.Microsecond)
+		time.Sleep(2000 * time.Millisecond)
 	}
 }
