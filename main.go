@@ -117,13 +117,12 @@ func PrintMainMenu(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent
 	modelLine := ""
 	if len(cpuInfo[0].ModelName) > ScreenWidth/2+1 {
 		padding = 1
-		modelLine = fmt.Sprintf("┃ %sCPU Model:   %s%s%s%s\n┃              %s",
-			Blue, Reset, cpuInfo[0].ModelName[:ScreenWidth/2], "-", Reset, cpuInfo[0].ModelName[18:])
+		modelLine = fmt.Sprintf("┃ %s%sCPU Model:   %s%s\n┃              %s",
+			Blue, Bold, Reset, cpuInfo[0].ModelName[:ScreenWidth/2], cpuInfo[0].ModelName[ScreenWidth/2:])
 
 		PrintValue(modelLine, 4, 0, ScreenWidth)
-		fmt.Printf("\033[5;%sH", ScreenWidth) // Set cursor
-		fmt.Printf("┃")
-		PrintValue("┃", 4+padding, ScreenWidth, ScreenWidth)
+		PrintValue("┃", 4, ScreenWidth, ScreenWidth)
+		PrintValue("┃", 5, ScreenWidth, ScreenWidth)
 	} else {
 		modelLine = fmt.Sprintf("┃ %s%sCPU Model:  %s %s", Blue, Bold, Reset, cpuInfo[0].ModelName)
 		PrintValue(modelLine, 4, 0, ScreenWidth)
@@ -142,7 +141,14 @@ func PrintMainMenu(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent
 	PrintValue(diskLine, 6+padding, 0, ScreenWidth)
 	PrintValue("┃", 6+padding, ScreenWidth, ScreenWidth)
 
-	tempLine := fmt.Sprintf("┃ %s%sTemps:%s       [%.2f°C]", Red, Bold, Reset, tempInfo[0].Temperature)
+	tempLine := ""
+	if len(tempInfo) > 0 {
+		tempLine = fmt.Sprintf("┃ %s%sTemps:%s       [%.2f°C]", Red, Bold, Reset, tempInfo[0].Temperature)
+
+	} else {
+		tempLine = fmt.Sprintf("┃ %s%sTemps:%s       [N/A]", Red, Bold, Reset)
+	}
+
 	PrintValue(tempLine, 8+padding, 0, ScreenWidth)
 	PrintValue("┃", 8+padding, ScreenWidth, ScreenWidth)
 
@@ -155,9 +161,8 @@ func PrintMainMenu(diskUsage *disk.UsageStat, cpuInfo []cpu.InfoStat, cpuPercent
 	PrintValue(netLine, 9+padding, 0, ScreenWidth)
 	PrintValue("┃", 9+padding, ScreenWidth, ScreenWidth)
 
-	fmt.Printf("\033[%d;0H", 10+padding)
-	fmt.Printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n")
-	fmt.Printf("\033[%d;0H", 11+padding)
+	PrintValue("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛", 10+padding, 0, ScreenWidth)
+	fmt.Printf("\033[%d;0H", 11+padding) // Reset Cursor
 }
 
 func PrintNetMenu(netInfo []net.IOCountersStat, selection int, err error) {
@@ -211,6 +216,8 @@ func PrintNetMenu(netInfo []net.IOCountersStat, selection int, err error) {
 
 	header5 := fmt.Sprintf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛")
 	PrintValue(header5, 10, ScreenWidth+10, ScreenWidth)
+
+	fmt.Printf("\033[11;0H") // Reset Cursor
 }
 
 func GetProgressBar(progress int, base int) string {
@@ -275,8 +282,8 @@ func main() {
 		BytesRecvDelta := netInfo[0].BytesRecv - BytesRecvLastIt
 
 		ClearScreen()
-		PrintMainMenu(diskUsage, cpuInfo, cpuPercent, memoryInfo, netInfo, temperatureInfo, err, float64(BytesRecvDelta))
 		PrintNetMenu(netInfo, selection, err)
+		PrintMainMenu(diskUsage, cpuInfo, cpuPercent, memoryInfo, netInfo, temperatureInfo, err, float64(BytesRecvDelta))
 
 		time.Sleep(10 * time.Millisecond)
 	}
