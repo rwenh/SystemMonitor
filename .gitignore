@@ -1,0 +1,42 @@
+# Zig project .gitignore
+# Compiled binaries
+*.o
+*.obj
+*.exe
+*.dll
+*.dylib
+*.so
+
+# Zig build artifacts
+zig-cache/
+zig-out/
+
+# IDE-specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build and dependency directories
+build/
+dist/
+node_modules/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows system files
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Linux system files
+*~
+
